@@ -27,4 +27,49 @@ This project outlines a scalable, secure, and highly available web application a
 
 ### 1. Load Balancer
 - Deployed in public subnets
-- Routes traffic to EC2 app instan
+- Routes traffic to EC2 app instances across availability zones
+
+### 2. EC2 Application Layer
+- Instances launched in private app subnets
+- Use **AMI + User Data** for bootstrap
+- IAM role attached for:
+  - S3 access
+  - CloudWatch logging
+  - Session Manager connectivity
+
+### 3. Auto Scaling with CloudWatch
+- If CPU > 80%, CloudWatch triggers new EC2 instance launch
+- Instances created from prebuilt AMI stored in S3
+
+### 4. MySQL Database Layer
+- **Master** in `10.0.20.0/24` (AZ-2a)
+- **Slave** in `10.0.21.0/24` (AZ-2b)
+- Master-slave replication for redundancy and failover
+
+---
+
+## 🔐 IAM and Access Control
+
+### IAM Role: `EC2InstanceRole`
+Attached to all EC2 app servers.
+
+#### Permissions:
+- Access to:
+  - **Amazon S3** for bootstrapping
+  - **CloudWatch Logs** for observability
+  - **Session Manager (SSM)** for secure shell access
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "s3:GetObject",
+    "logs:CreateLogStream",
+    "logs:PutLogEvents",
+    "ssm:StartSession",
+    "ssm:DescribeSessions",
+    "ssmmessages:*"
+  ],
+  "Resource": "*"
+}
+
