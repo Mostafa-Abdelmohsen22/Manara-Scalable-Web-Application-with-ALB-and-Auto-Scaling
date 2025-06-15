@@ -1,5 +1,7 @@
 # Manara-Scalable-Web-Application-with-ALB-and-Auto-Scaling
 # Manara Project - High Availability AWS Architecture
+# Next is the link of App Video
+  ## https://drive.google.com/file/d/1jbKPJcN9bLs-HrJy6HTU0AUMe6_74cka/view?usp=sharing
 
 This project outlines a scalable, secure, and highly available web application architecture deployed on AWS. It leverages auto-scaling, secure access via IAM and Systems Manager, and multi-AZ MySQL replication.
 
