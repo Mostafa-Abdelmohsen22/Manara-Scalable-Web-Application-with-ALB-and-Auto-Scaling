@@ -1,10 +1,12 @@
 # Manara-Scalable-Web-Application-with-ALB-and-Auto-Scaling
+# ![Architecture Diagram]([manara project.drawio (1).png](https://github.com/Mostafa-Abdelmohsen22/Manara-Scalable-Web-Application-with-ALB-and-Auto-Scaling/blob/main/manara%20project.drawio%20(1).png))
+
 # Next is the link of App Video
   #### https://drive.google.com/file/d/1jbKPJcN9bLs-HrJy6HTU0AUMe6_74cka/view?usp=sharing
 
 
 # Setup Guide for AWS Multi-AZ Architecture with High Availability and Monitoring
-![Architecture Diagram]([manara project.drawio (1).png](https://github.com/Mostafa-Abdelmohsen22/Manara-Scalable-Web-Application-with-ALB-and-Auto-Scaling/blob/main/manara%20project.drawio%20(1).png))
+
 ## Introduction
 This guide provides step-by-step instructions to set up a highly available and scalable architecture in AWS. The architecture includes public and private subnets, EC2 instances, a MySQL master-slave database setup, an Application Load Balancer (ALB), CloudWatch monitoring, and automated scaling.
 
