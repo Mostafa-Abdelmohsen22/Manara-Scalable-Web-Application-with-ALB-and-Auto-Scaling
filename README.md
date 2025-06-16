@@ -4,7 +4,7 @@
 
 
 # Setup Guide for AWS Multi-AZ Architecture with High Availability and Monitoring
-
+![Architecture Diagram](manara-project.png)
 ## Introduction
 This guide provides step-by-step instructions to set up a highly available and scalable architecture in AWS. The architecture includes public and private subnets, EC2 instances, a MySQL master-slave database setup, an Application Load Balancer (ALB), CloudWatch monitoring, and automated scaling.
 
