@@ -1,77 +1,114 @@
 # Manara-Scalable-Web-Application-with-ALB-and-Auto-Scaling
-# Manara Project - High Availability AWS Architecture
 # Next is the link of App Video
-  ## https://drive.google.com/file/d/1jbKPJcN9bLs-HrJy6HTU0AUMe6_74cka/view?usp=sharing
+  #### https://drive.google.com/file/d/1jbKPJcN9bLs-HrJy6HTU0AUMe6_74cka/view?usp=sharing
 
-This project outlines a scalable, secure, and highly available web application architecture deployed on AWS. It leverages auto-scaling, secure access via IAM and Systems Manager, and multi-AZ MySQL replication.
 
----
+# Setup Guide for AWS Multi-AZ Architecture with High Availability and Monitoring
 
-## 📐 Architecture Overview
+## Introduction
+This guide provides step-by-step instructions to set up a highly available and scalable architecture in AWS. The architecture includes public and private subnets, EC2 instances, a MySQL master-slave database setup, an Application Load Balancer (ALB), CloudWatch monitoring, and automated scaling.
 
-### 🔹 VPC Configuration
-- **Region**: `us-east-1`
-- **CIDR Block**: `10.0.0.0/16`
-- **Availability Zones**:
-  - `AZ-2a`
-  - `AZ-2b`
+## Prerequisites
 
-### 🔸 Subnets
-| Type            | AZ-2a              | AZ-2b              |
-|-----------------|--------------------|--------------------|
-| Public Subnet   | 10.0.1.0/24        | 10.0.2.0/26        |
-| App Subnet      | 10.0.10.0/24       | 10.0.11.0/24       |
-| Data Subnet     | 10.0.20.0/24       | 10.0.21.0/24       |
+1. **AWS Account**: Ensure you have access to an AWS account.
+2. **Tools**:
+   - AWS Management Console
+   - AWS CLI installed and configured
+   - (Optional) Infrastructure as Code tools like Terraform or CloudFormation.
+3. **IAM Permissions**:
+   - Administrator access or specific permissions for managing VPC, EC2, RDS, IAM, and S3.
+4. **Key Pair**: Create an EC2 key pair for SSH access.
 
----
+## Architecture Overview
+- **VPC CIDR**: `10.0.0.0/16`
+- **Public Subnets**:
+  - `10.0.1.0/24` (AZ-a)
+  - `10.0.2.0/26` (AZ-b)
+- **Private Subnets** (Application Layer):
+  - `10.0.10.0/24` (AZ-a)
+  - `10.0.11.0/24` (AZ-b)
+- **Private Subnets** (Database Layer):
+  - `10.0.20.0/24` (AZ-a, Master MySQL)
+  - `10.0.21.0/24` (AZ-b, Slave MySQL)
+- **Components**:
+  - Application Load Balancer (ALB)
+  - EC2 instances for the application layer
+  - MySQL master-slave replication setup
+  - CloudWatch for monitoring
+  - IAM roles for secure access to resources
 
-## 🧱 Components
+## Steps
 
-### 1. Load Balancer
-- Deployed in public subnets
-- Routes traffic to EC2 app instances across availability zones
+### 1. Create the VPC and Subnets
+1. Log in to the AWS Management Console.
+2. Navigate to the VPC service.
+3. Create a new VPC:
+   - Name: `MyVPC`
+   - CIDR block: `10.0.0.0/16`
+4. Create subnets:
+   - Public Subnets:
+     - `10.0.1.0/24` in AZ-a
+     - `10.0.2.0/26` in AZ-b
+   - Private Subnets:
+     - Application Layer: `10.0.10.0/24` (AZ-a), `10.0.11.0/24` (AZ-b)
+     - Database Layer: `10.0.20.0/24` (AZ-a), `10.0.21.0/24` (AZ-b)
+5. Associate route tables:
+   - Public subnets: Attach an internet gateway.
+   - Private subnets: Create NAT gateway(s) for internet access if required.
 
-### 2. EC2 Application Layer
-- Instances launched in private app subnets
-- Use **AMI + User Data** for bootstrap
-- IAM role attached for:
-  - S3 access
-  - CloudWatch logging
-  - Session Manager connectivity
+### 2. Launch EC2 Instances
+1. Navigate to EC2 and launch instances:
+   - Use the AMI and instance type of your choice.
+   - Place the instances in the private application subnets (`10.0.10.0/24` and `10.0.11.0/24`).
+2. Assign IAM roles to the instances for access to S3 and CloudWatch.
+3. Configure security groups:
+   - Allow HTTP/HTTPS traffic from the ALB.
+   - Restrict SSH access to trusted IPs.
 
-### 3. Auto Scaling with CloudWatch
-- If CPU > 80%, CloudWatch triggers new EC2 instance launch
-- Instances created from prebuilt AMI stored in S3
+### 3. Set Up MySQL Master-Slave Replication
+1. Launch two EC2 instances in the private database subnets (`10.0.20.0/24` and `10.0.21.0/24`).
+2. Install MySQL on both instances.
+3. Configure the master database:
+   - Edit MySQL configuration to enable binary logging.
+   - Create a replication user.
+4. Configure the slave database:
+   - Point it to the master’s endpoint.
+   - Start the replication process.
 
-### 4. MySQL Database Layer
-- **Master** in `10.0.20.0/24` (AZ-2a)
-- **Slave** in `10.0.21.0/24` (AZ-2b)
-- Master-slave replication for redundancy and failover
+### 4. Deploy the Application Load Balancer (ALB)
+1. Navigate to the EC2 Load Balancers section.
+2. Create an Application Load Balancer:
+   - Assign it to the public subnets.
+   - Configure the target group to include the private EC2 instances (application layer).
+3. Set up health checks for the target group.
 
----
+### 5. Configure CloudWatch and Auto-Scaling
+1. Create a CloudWatch alarm:
+   - Metric: CPU utilization > 80%.
+   - Action: Trigger an auto-scaling policy.
+2. Set up an auto-scaling group:
+   - Minimum instances: 1
+   - Maximum instances: 2
+   - Scaling policy: Launch additional instances when alarm is triggered.
 
-## 🔐 IAM and Access Control
+### 6. IAM and Security Setup
+1. Create an IAM role with the following permissions:
+   - Access to S3 for storing AMIs or logs.
+   - Access to CloudWatch for monitoring.
+2. Attach the IAM role to the EC2 instances.
 
-### IAM Role: `EC2InstanceRole`
-Attached to all EC2 app servers.
+### 7. Connect and Test
+1. Use the ALB DNS name to access the application.
+2. Verify that requests are distributed across the EC2 instances.
+3. Simulate high CPU usage to trigger auto-scaling.
+4. Test MySQL master-slave replication by making updates to the master and verifying the slave.
 
-#### Permissions:
-- Access to:
-  - **Amazon S3** for bootstrapping
-  - **CloudWatch Logs** for observability
-  - **Session Manager (SSM)** for secure shell access
+## Best Practices
+- Use Elastic IPs for NAT gateways.
+- Enable logging for ALB and store logs in S3.
+- Regularly back up the MySQL database.
+- Use AWS Systems Manager Session Manager for secure access to instances.
 
-```json
-{
-  "Effect": "Allow",
-  "Action": [
-    "s3:GetObject",
-    "logs:CreateLogStream",
-    "logs:PutLogEvents",
-    "ssm:StartSession",
-    "ssm:DescribeSessions",
-    "ssmmessages:*"
-  ],
-  "Resource": "*"
-}
+## Conclusion
+By following these steps, you can deploy a highly available and scalable architecture in AWS. Ensure continuous monitoring and follow AWS best practices for security and performance.
 
